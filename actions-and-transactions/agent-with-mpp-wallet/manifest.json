@@ -7,9 +7,12 @@
     "emoji": "💳"
   },
   "template": {
-    "slug": "agent-with-wallet",
+    "slug": "agent-with-mpp-wallet",
     "category": "actions & transactions",
-    "tags": ["tempo", "wallet", "payments", "mpp"]
+    "tags": ["tempo", "wallet", "payments", "mpp"],
+    "authorName": "Tempo",
+    "authorUrl": "https://tempo.xyz/",
+    "authorLogoUrl": "https://pinataassets.cloud/partner-logos/mark-black.png"
   },
   "scripts": {
     "build": "cd workspace/projects/starter && npm install --include=dev && cd ../../.. && bash setup.sh",
