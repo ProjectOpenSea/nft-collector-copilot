@@ -1,0 +1,41 @@
+{
+  "$schema": "https://agents.pinata.cloud/schemas/manifest.v1.json",
+  "version": 1,
+
+  "agent": {
+    "name": "Web Master",
+    "description": "A web developer agent that builds custom Astro SSR websites from conversation. Ships with a design system, multiple layouts, page templates, UI components, a stock image library, SQLite database, and MDX blog — everything needed to go from idea to live site.",
+    "vibe": "designs it, builds it, ships it",
+    "emoji": "🌐"
+  },
+
+  "template": {
+    "slug": "web-master",
+    "category": "content",
+    "tags": ["astro", "web-design", "portfolio", "landing-page", "blog", "sqlite", "ssr"],
+    "partnerName": "Pinata",
+    "authorName": "Pinata"
+  },
+
+  "tasks": [
+    {
+      "name": "daily-waitlist-report",
+      "prompt": "Query the SQLite database at workspace/projects/astro-app/data/database.db and report the total number of waitlisted users and any new signups since yesterday.",
+      "schedule": "0 9 * * *",
+      "enabled": true
+    }
+  ],
+
+  "scripts": {
+    "build": "cd workspace/projects/astro-app && npm ci && npm run build",
+    "start": "cd workspace/projects/astro-app && HOST=0.0.0.0 PORT=4321 node dist/server/entry.mjs"
+  },
+
+  "routes": [
+    {
+      "port": 4321,
+      "path": "/app",
+      "protected": false
+    }
+  ]
+}

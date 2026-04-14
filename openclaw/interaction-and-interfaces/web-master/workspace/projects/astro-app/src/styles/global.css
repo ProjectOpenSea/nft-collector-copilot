@@ -1,0 +1,64 @@
+/* Design System — shared across all layouts */
+
+:root {
+  --text: #e8e8ed;
+  --text-muted: #8888a0;
+  --bg: #0a0a0f;
+  --surface: #12121c;
+  --surface-hover: #1a1a28;
+  --border: #1e1e30;
+  --accent: #00d4aa;
+  --accent-hover: #00b894;
+  --accent-glow: color-mix(in srgb, #00d4aa 15%, transparent);
+  --display: 'Syne', sans-serif;
+  --sans: 'DM Sans', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --max-w: 960px;
+  --radius: 10px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --text: #12121a;
+    --text-muted: #5a5a72;
+    --bg: #f8f8f6;
+    --surface: #ffffff;
+    --surface-hover: #f0f0ee;
+    --border: #e2e2dd;
+    --accent: #00a88a;
+    --accent-hover: #008f74;
+    --accent-glow: color-mix(in srgb, #00a88a 12%, transparent);
+  }
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--sans);
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.6;
+  scroll-behavior: smooth;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
