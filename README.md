@@ -21,6 +21,19 @@ OpenClaw agents run in isolated containers with a persistent workspace. They can
 ## 📦 Template Categories
 Within each agent type, templates are grouped based on the *role the agent plays* in a system.
 
+### 0. 🧱 Basic
+Starter templates that provide a vanilla foundation for building any kind of agent.
+
+**Use this for:**
+- Getting started with Pinata Agents
+- Learning the manifest and workspace structure
+- Scaffolding a new agent from scratch
+
+**Examples:**
+- Useful Assistant
+
+---
+
 ### 1. 🛰️ Monitoring & Alerts
 Agents that observe systems, detect changes, and notify or trigger actions.
 
