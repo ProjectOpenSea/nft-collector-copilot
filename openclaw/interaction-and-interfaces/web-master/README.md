@@ -6,10 +6,11 @@ A web developer agent that builds custom websites through conversation. Tell it 
 
 This isn't a blank canvas. Web Master ships with a full toolkit so it can build distinctive sites fast:
 
-### Design System
-- Dark-first theme with light mode support via `prefers-color-scheme`
-- CSS variables for every color, font, radius, and spacing value — change the accent color and the entire site transforms
-- Google Fonts (Syne + DM Sans) with easy font swapping via `--display` and `--sans` variables
+### Design System (Framer-Inspired Default)
+- Ships with a Framer-inspired dark canvas design (`designs/framer/DESIGN.md`) — pure black backgrounds, electric blue accent (`#0099ff`), tight typography
+- Instantly swap to 60+ other brand designs (Stripe, Vercel, Linear, Apple, Nike, Notion...) via `npx getdesign` from [VoltAgent's awesome-design-md](https://github.com/VoltAgent/awesome-design-md)
+- CSS variables for every color, font, radius, and spacing value — change the design and the entire site transforms
+- Google Fonts (Space Grotesk + Inter) with easy font swapping via `--display` and `--sans` variables
 - Fade-up and fade-in animation keyframes for staggered reveals
 
 ### Three Layouts
@@ -35,6 +36,9 @@ Composable Astro components in `src/components/ui/`: Text, Button, Card, Box, St
 - **MDX blog** — Content collections supporting Markdown and MDX with interactive components
 - **Waitlist API** — Email signup endpoint with form validation, ready to use
 
+### VoltAgent Design Integration
+Web Master uses [VoltAgent's awesome-design-md](https://github.com/VoltAgent/awesome-design-md) as its primary design source. The Framer design ships as the default, but you can ask the agent to switch to any of the 60+ brand designs in the collection. The agent downloads the DESIGN.md via `npx getdesign`, maps the design tokens to the project's CSS variables, updates fonts, and rebuilds — the entire site transforms to match the new brand.
+
 ## Stack
 
 | Layer | Tech |
@@ -49,10 +53,11 @@ Composable Astro components in `src/components/ui/`: Text, Button, Card, Box, St
 ## How It Works
 
 1. **Deploy the template** and open the chat
-2. **Tell it about your project** — what the site is for, your brand colors, any reference sites
-3. **It picks a template**, customizes the design system, and builds your pages
-4. **Visit your live site** at the agent's public URL under `/app`
-5. **Iterate** — ask for changes, new pages, blog posts, data models, and it rebuilds and deploys
+2. **Pick a design** — the Framer design is active by default, or choose from 60+ brand designs (Stripe, Vercel, Linear, etc.)
+3. **Tell it about your project** — what the site is for, any reference sites, what content you need
+4. **It picks a page template**, applies the design system, and builds your pages
+5. **Visit your live site** at the agent's public URL under `/app`
+6. **Iterate** — ask for changes, new pages, blog posts, data models, and it rebuilds and deploys
 
 The agent backs up the original template code before transforming the project, so it can reference patterns later. It keeps the infrastructure (layouts, components, database, API routes) and replaces the content with yours.
 
@@ -64,6 +69,8 @@ After deploying, the site is live at the agent's public URL under `/app`. The SQ
 
 ## What You Can Ask It To Do
 
+- **"Use the Stripe design"** — instantly reskins the site using a brand's `DESIGN.md` from VoltAgent
+- **"Switch to the Vercel design"** — swap between designs at any time
 - Build a complete website from a description or reference URL
 - Add new pages, sections, or features
 - Write and publish blog posts (Markdown or MDX with interactive components)

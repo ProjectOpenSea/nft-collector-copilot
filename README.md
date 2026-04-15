@@ -7,6 +7,11 @@ Pinata Agents are hosted AI agent instances that can run code, search the web, m
 ### What are Agent Templates?
 Templates are the fastest way to get a working agent. Instead of configuring everything yourself, pick a template that does what you need - it comes with the right skills, settings, and personality already set up. Just add your API keys and deploy.
 
+## 🎨 VoltAgent Design Integration
+We now support [VoltAgent's awesome-design-md](https://github.com/VoltAgent/awesome-design-md), a collection of `DESIGN.md` files inspired by popular brand design systems (like Stripe, Vercel, Linear, Apple, etc.). 
+
+Our **[Web Master](./openclaw/interaction-and-interfaces/web-master)** agent is fully equipped to read these files and instantly adapt its UI to match the requested brand. Just browse the [full list of available designs](https://github.com/VoltAgent/awesome-design-md) and tell the Web Master agent which one you want to use (e.g., "Use the Linear design"). The agent uses the `npx getdesign` CLI internally to fetch the exact design and apply it.
+
 ## 🤖 Agent Types
 
 Templates are organized by **agent type** — the underlying runtime or framework that powers the agent. Each agent type has its own folder at the top level, and within it, templates are grouped by the role the agent plays.

@@ -22,18 +22,19 @@ Before you start building, gather context. Ask the user about their project so y
 
 - **What is the site for?** Business, portfolio, blog, product, community?
 - **Do they have an existing website?** Ask for the URL. Study it — extract their colors, structure, content, and tone. Build something that's close to what they have but cleaner and more modern.
-- **Brand colors?** If they have a site, pull colors from it. If not, ask what colors and vibe they want.
+- **Pick a design system:** Proactively ask the user to choose a brand design from the VoltAgent collection. The project ships with Framer by default (`designs/framer/DESIGN.md`), but there are 60+ options — Stripe, Vercel, Linear, Apple, Nike, Notion, and more. Share the link: https://github.com/VoltAgent/awesome-design-md. If the user doesn't have a preference, the Framer design is already active and ready to go.
+- **Brand colors?** If they have a site, pull colors from it. If not, the chosen DESIGN.md palette is the starting point — ask if they want to tweak it.
 - **Photos and images?** Ask if they have images to use. Sites without images look empty and boring — photos make a massive difference. Suggest they add images to `/public` and guide them on file naming.
 - **Content?** What pages do they need? What text, listings, products, or posts should be there?
 
-If the user provides a reference site, **match it closely but improve it** — cleaner layout, better typography, modern CSS. Don't reinvent their brand. If they provide nothing, make your best effort with a clean, professional design and placeholder content they can swap later.
+If the user provides a reference site, **match it closely but improve it** — cleaner layout, better typography, modern CSS. Don't reinvent their brand. If they provide nothing, use the active DESIGN.md and make your best effort with placeholder content they can swap later.
 
 ## Design Standards
 
 Don't build generic-looking sites. Every site should feel intentionally designed for its specific context.
 
 ### Typography
-Pick fonts that match the project's tone. Use Google Fonts — load via `<link>` in the layout head. Pair a distinctive display/heading font with a clean body font. Avoid system fonts or overused choices (Inter, Roboto, Arial) — pick something with character. The template ships with Syne + DM Sans; swap them via `--display` and `--sans` CSS variables. Every project should have its own font personality.
+Pick fonts that match the project's tone or the active DESIGN.md. Use Google Fonts — load via `<link>` in `BaseHead.astro`. Pair a distinctive display/heading font with a clean body font. Avoid overused choices (Roboto, Arial) unless the DESIGN.md calls for them. The template ships with Space Grotesk + Inter (Framer-inspired); swap them via `--display` and `--sans` CSS variables. Every project should have its own font personality.
 
 ### Color
 Commit to a cohesive palette. Use CSS variables for every color — the template defines `--accent`, `--bg`, `--surface`, `--border`, `--text`, `--text-muted`, `--accent-glow`, etc. A dominant color with sharp accents beats a timid, evenly-distributed palette. Use `color-mix()` for transparent variations (e.g. `color-mix(in srgb, var(--accent) 15%, transparent)` for glow effects). Always define both light and dark mode via `prefers-color-scheme`.
@@ -82,28 +83,74 @@ Your project lives at `workspace/projects/astro-app/`. It's an Astro SSR site wi
 
 ### Starting a New Site
 
-When the user tells you what they want to build, **pick a template as your starting point** — don't build from scratch.
+When the user tells you what they want to build, don't build from scratch. Use a DESIGN.md and a page template as your starting point.
 
 1. **Back up the original template code** so you can reference it later:
    ```bash
    cp -r workspace/projects/astro-app/src workspace/projects/astro-app/src-original
    ```
-2. **Choose the closest template** from `src/pages/template/` based on the user's project:
+
+2. **Apply a design system** — this is the first step, before writing any pages:
+   - The project ships with Framer (`designs/framer/DESIGN.md`) already applied to `global.css`.
+   - If the user chose a different brand, download it:
+     ```bash
+     cd workspace/projects/astro-app && npx getdesign@latest add <brand> --out ./designs/<brand>/DESIGN.md
+     ```
+   - Read the downloaded DESIGN.md and map its tokens to the project CSS variables (see **DESIGN.md → CSS Variable Mapping** below).
+   - Update fonts in `src/components/BaseHead.astro` — find the closest Google Fonts match for the brand's typefaces.
+   - The DESIGN.md stays in `designs/` as a reference. You'll consult it for component styles, spacing, shadows, and border-radius as you build pages.
+
+3. **Choose a page template** from `src/pages/template/` as the structural starting point:
    - `starter.astro` — SaaS, product pages, landing pages with feature grids and CTAs
    - `portfolio.astro` — Portfolios, personal sites, freelancer showcases (uses SidebarLayout)
    - `studio.astro` — Agencies, creative studios, service businesses (uses MinimalLayout)
    - `waitlist.astro` — Pre-launch pages, waitlists, dark high-contrast marketing sites (custom layout)
-3. **Study that template's code** — its layout choice, section structure, CSS patterns, and color overrides. Use it as the foundation for the user's site.
-4. **Transform the project** to match the user's needs:
+
+   These templates handle layout structure and sections. The DESIGN.md handles the visual identity. Use both together — the template gives you the bones, the DESIGN.md gives you the skin.
+
+4. **Study that template's code** — its layout choice, section structure, CSS patterns, and component usage. Use it as the foundation for the user's site.
+
+5. **Transform the project** to match the user's needs:
    - Replace `src/pages/index.astro` with the user's homepage, based on the chosen template's patterns
-   - Update the layout (brand name, nav links, colors, fonts) for the user's brand
-   - Override CSS variables in `src/styles/global.css` or via `<style is:global>` for the user's palette
+   - Update the layout (brand name, nav links) for the user's brand
+   - Apply DESIGN.md component styles (shadows, border-radius, button shapes, hover effects) beyond just the CSS variables
    - Delete `src/pages/template/` — the user doesn't need the showcase gallery
    - Delete sample blog posts in `src/content/blog/` — replace with the user's content or leave empty
    - Update `src/content.config.ts` default author to the user's name/brand
-5. **Keep the infrastructure** — layouts, BaseHead, global.css, UI components, db.ts, api routes. These are tools, not examples.
+
+6. **Keep the infrastructure** — layouts, BaseHead, global.css, UI components, db.ts, api routes. These are tools, not examples.
 
 The backup at `src-original/` lets you reference template code later if you need patterns or components you deleted.
+
+### DESIGN.md → CSS Variable Mapping
+
+When you download a DESIGN.md, map its design tokens to the project's CSS variables in `src/styles/global.css`. This is the **only** place you set colors and fonts — never scatter raw hex values through components.
+
+| Project Variable | What to Extract from DESIGN.md | Example (Framer) |
+|---|---|---|
+| `--text` | Primary text / heading color | `#ffffff` |
+| `--text-muted` | Secondary text / body / caption color | `#a6a6a6` |
+| `--bg` | Page background | `#000000` |
+| `--surface` | Card / elevated surface background | `#090909` |
+| `--surface-hover` | Hover state for surfaces | `rgba(255,255,255,0.1)` |
+| `--border` | Default border / divider color | `rgba(255,255,255,0.08)` |
+| `--accent` | Primary accent / CTA / link color | `#0099ff` |
+| `--accent-hover` | Accent hover state (darken 10-15%) | `#007acc` |
+| `--accent-glow` | Focus ring / glow (accent at 12-15% opacity) | `rgba(0,153,255,0.15)` |
+| `--display` | Display / heading font family | `'Space Grotesk', sans-serif` |
+| `--sans` | Body / UI font family | `'Inter', system-ui, sans-serif` |
+| `--mono` | Monospace font family | `'Azeret Mono', 'SF Mono', monospace` |
+| `--max-w` | Max container width from Layout Principles | `1200px` |
+| `--radius` | Default border-radius from Component Stylings | `12px` |
+
+**How to read a DESIGN.md:**
+1. **Color Palette & Roles** → map Primary colors to `--text`, `--bg`, `--accent`. Map Surface/Border colors to `--surface`, `--border`. Create hover variants by darkening/lightening 10-15%.
+2. **Typography Rules** → find the Display and Body font families. Search Google Fonts for the closest match if the original is proprietary (e.g., GT Walsheim → Space Grotesk, sohne-var → Inter).
+3. **Layout Principles** → pull max container width into `--max-w`.
+4. **Component Stylings** → pull default border-radius into `--radius`. Apply button shapes, shadow systems, and hover patterns from the DESIGN.md directly in component `<style>` blocks.
+5. **Light mode** → if the DESIGN.md is dark-only (like Framer), create a light mode variant by inverting: white bg, dark text, same accent. If it defines both, map them directly.
+
+After updating `global.css`, update the Google Fonts `<link>` in `src/components/BaseHead.astro` to load the new font families.
 
 ### Building and Deploying Changes
 
