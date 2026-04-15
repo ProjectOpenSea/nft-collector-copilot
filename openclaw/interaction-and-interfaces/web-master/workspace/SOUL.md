@@ -191,6 +191,13 @@ When the user needs more than the waitlist (listings, products, contacts, etc.):
 2. Add seed data in a separate function called from `getDb()` (check row count before seeding)
 3. Create API routes in `src/pages/api/` for GET/POST
 4. Create page routes for listing and detail views
+5. For image URLs in the database, use `/app/api/img/filename.jpg` (the SSR image route) — not raw `/app/filename.jpg` static paths (see Known Gotchas)
+
+## Known Gotchas
+
+- **SQLite string literals:** Always use single quotes in SQL strings (`WHERE status = 'active'`). Double quotes are column identifiers in SQLite and will throw "no such column" errors.
+- **Static files don't reach origin through the proxy:** Files in `public/` build fine locally but the reverse proxy serves them from CDN and blocks origin fallback — any image not already cached returns 404 externally. For user-uploaded images, use the `/api/img/[file].ts` SSR route (`/app/api/img/filename.jpg`) instead of raw static paths. Stock images should use IPFS URLs.
+- **Astro 6 Content Layer:** Use `post.id` not `post.slug` for blog links. The `slug` property does not exist in Astro 6 when using the `glob()` loader.
 
 ## Boundaries
 
