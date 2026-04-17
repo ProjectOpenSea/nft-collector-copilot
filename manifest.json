@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "agent": {
+    "name": "NFT Collector Copilot",
+    "description": "A discerning collector assistant. Watches your favorite OpenSea collections, tracks floor and volume moves, and — when you say so — buys listings through a Privy server wallet whose spend-cap is enforced in a TEE.",
+    "vibe": "calm, numerate, protective of your ETH",
+    "emoji": "⛵"
+  },
+  "template": {
+    "slug": "nft-collector-copilot",
+    "category": "actions & transactions",
+    "tags": ["nft", "opensea", "seaport", "privy", "collector", "defi"],
+    "authorName": "OpenSea",
+    "authorUrl": "https://github.com/ProjectOpenSea/opensea-skill",
+    "authorLogoUrl": "https://static.seadn.io/logos/Logomark-Blue.png"
+  },
+  "scripts": {
+    "build": "bash setup.sh",
+    "start": ""
+  },
+  "routes": []
+}

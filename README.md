@@ -1,140 +1,102 @@
-# agent-templates
-Central repository for Pinata agent template examples
+# NFT Collector Copilot
 
-### What are Pinata Agents
-Pinata Agents are hosted AI agent instances that can run code, search the web, manage files, and connect to external services. Each agent runs in its own isolated container with a persistent workspace.
+An AI agent for NFT collectors. Watches [OpenSea](https://opensea.io), scores every listing across five signals (price, volume, depth, holders, momentum), and executes Seaport trades through a [Privy](https://privy.io) server wallet with a TEE-enforced spend cap. You approve; it acts.
 
-### What are Agent Templates?
-Templates are the fastest way to get a working agent. Instead of configuring everything yourself, pick a template that does what you need - it comes with the right skills, settings, and personality already set up. Just add your API keys and deploy.
+## The killer feature: **Whale-Cross Alerts**
 
-## 🎨 VoltAgent Design Integration
-We now support [VoltAgent's awesome-design-md](https://github.com/VoltAgent/awesome-design-md), a collection of `DESIGN.md` files inspired by popular brand design systems (like Stripe, Vercel, Linear, Apple, etc.). 
+Point it at a list of wallets you respect (vitalik.eth, your favorite PFP whale, whoever) and your watchlist. When a tracked whale buys, mints, or lists into any collection — whether it's on your watchlist or not — you get a one-line alert within a heartbeat, with a one-click follow gated by your Privy spend cap. Nobody else ships this because nobody else has the OpenSea Stream API, a TEE-enforced wallet, and a scoring rubric in one box.
 
-Our **[Web Master](./openclaw/interaction-and-interfaces/web-master)** agent is fully equipped to read these files and instantly adapt its UI to match the requested brand. Just browse the [full list of available designs](https://github.com/VoltAgent/awesome-design-md) and tell the Web Master agent which one you want to use (e.g., "Use the Linear design"). The agent uses the `npx getdesign` CLI internally to fetch the exact design and apply it.
+## What it does
 
-## 🤖 Agent Types
+- **Watchlist floor + volume tracking** with per-slug alert thresholds and sell-side flip triggers.
+- **Conviction Score** before any recommendation — price vs 7d median, 7d/30d volume ratio, listing depth, holder concentration, momentum.
+- **Pre-Buy Gate** — wash-trade check, thin-market refusal, gas economics, full-cost (with fees) disclosure, balance & buffer check, policy-fit check.
+- **Seaport buys + sells** via `@opensea/cli` + the skill's fulfillment scripts, signed by your Privy wallet.
+- **Drop Radar** — upcoming/featured drops cross-referenced against your taste model.
+- **Taste learning** — every buy/pass/ask updates a structured `taste.json` so recommendations get sharper over time.
+- **Spend-cap safety.** The Privy policy is the real enforcement — the agent literally cannot overspend.
 
-Templates are organized by **agent type** — the underlying runtime or framework that powers the agent. Each agent type has its own folder at the top level, and within it, templates are grouped by the role the agent plays.
+Supported chains: see `workspace/TOOLS.md`. Mainnets only by default.
 
-### [OpenClaw](./openclaw)
-OpenClaw agents run in isolated containers with a persistent workspace. They can run code, search the web, manage files, and connect to external services.
+## What's bundled
 
----
+- [`@opensea/cli`](https://github.com/ProjectOpenSea/opensea-cli) — installed globally at build time.
+- [`ProjectOpenSea/opensea-skill`](https://github.com/ProjectOpenSea/opensea-skill) at `skills/opensea/` (git submodule, pinned to `v2.1.0`) — SKILL.md + 7 reference docs + shell scripts for Seaport, swaps, stream events, wallet setup, and policy templates.
 
-*More agent types coming soon.*
+## Secrets you'll need
 
-## 📦 Template Categories
-Within each agent type, templates are grouped based on the *role the agent plays* in a system.
+Paste these into Pinata's environment UI at deploy time:
 
-### 0. 🧱 Basic
-Starter templates that provide a vanilla foundation for building any kind of agent.
+| Variable | Required | How to get it |
+|---|---|---|
+| `OPENSEA_API_KEY` | yes | `curl -s -X POST https://api.opensea.io/api/v2/auth/keys \| jq -r .api_key` — no signup |
+| `PRIVY_APP_ID` | yes | [dashboard.privy.io](https://dashboard.privy.io) → create app |
+| `PRIVY_APP_SECRET` | yes | Same page as App ID |
+| `PRIVY_WALLET_ID` | yes | Create a server wallet — see `skills/opensea/references/wallet-setup.md` → *Privy* |
 
-**Use this for:**
-- Getting started with Pinata Agents
-- Learning the manifest and workspace structure
-- Scaffolding a new agent from scratch
+Full walkthrough: `skills/opensea/references/wallet-setup.md`. Policy templates: `skills/opensea/references/wallet-policies.md`.
 
-**Examples:**
-- Useful Assistant
+## 60-second setup
 
----
+1. **Grab an OpenSea API key** — run the curl above.
+2. **Create a Privy app** at [dashboard.privy.io](https://dashboard.privy.io); copy App ID + App Secret.
+3. **Create a server wallet** following `skills/opensea/references/wallet-setup.md` → *Privy* → step 2. Save `id` as `PRIVY_WALLET_ID`.
+4. **Attach a spend policy** — the agent will walk you through this on first run using the "Agent Trading — Conservative" template from `skills/opensea/references/wallet-policies.md`. Start tight.
+5. **Fund the wallet** on whichever chains you plan to trade on.
+6. **Deploy** — paste all four env vars into Pinata, then chat.
 
-### 1. 🛰️ Monitoring & Alerts
-Agents that observe systems, detect changes, and notify or trigger actions.
+## Example prompts
 
-**Use this for:**
-- Price / market monitoring
-- Wallet or transaction tracking
-- System health checks
-- Event detection and alerting
+> "Add boredapeyachtclub, pudgypenguins, and azuki to my watchlist on ethereum. Alert me on any floor drop over 5%."
 
-**Examples:**
-- Financial tracker
-- API uptime monitor
-- Activity alert agent
+> "Follow vitalik.eth and 0xpunks4156 as whales — high-priority alerts."
 
----
+> "Should I buy this azuki at 2.1 ETH? Run the full gate."
 
-### 2. ⚙️ Actions & Transactions
-Agents that take actions on behalf of a user or system, especially involving external services or state changes.
+> "Any upcoming drops this week that fit my taste?"
 
-**Use this for:**
-- Purchasing / payments
-- Executing workflows
-- Writing to external systems
-- Triggering side effects
+> "What's the best offer on my bored ape #1234? Is it worth flipping?"
 
-**Examples:**
-- Purchasing agent
-- Trading agent
-- CRM update agent
+> "Swap 0.05 ETH into USDC on Base."
 
----
+> "Walk me through tightening the wallet policy to cap buys at 0.1 ETH."
 
-### 3. 🔎 Data Extraction & Summarization
-Agents that read, process, and condense information into usable outputs.
+## Safety model
 
-**Use this for:**
-- Summarization
-- Parsing structured/unstructured data
-- Report generation
-- Indexing / transforming data
+- **Env-only credentials.** No private keys in the repo or agent workspace.
+- **Privy policy is the hard ceiling.** The spend cap, destination allowlist, and chain filter are enforced inside a TEE before signing.
+- **Per-turn confirmation for material actions.** Any buy, offer acceptance, approval, or transfer above `confirmAboveEth` (in `workspace/TOOLS.md`) needs explicit "yes" in the current turn. Snipes can bypass this only when the listing is fully inside your configured envelope — see `workspace/SOUL.md` → *Hierarchy of Ceilings*.
+- **Sell-side always confirms.** The native-value Privy cap doesn't constrain WETH offer acceptances, so those always require per-turn approval regardless of price.
+- **Pre-Buy Gate.** Wash trades, thin markets, uneconomic gas, and fee surprises all block a buy before it's proposed.
+- **Policy rejections surface verbatim.** No workarounds.
 
-**Examples:**
-- Graph summarizer
-- PDF summarization agent
-- Log analysis agent
+## Repository layout
 
----
+```
+.
+├── manifest.json              # Pinata agent manifest
+├── setup.sh                   # build: submodule init + CLI install
+├── .openclaw/
+│   ├── openclaw.json
+│   └── SOUL.md                # short canonical persona — points at workspace/SOUL.md
+├── workspace/
+│   ├── SOUL.md                # guardrails + Conviction Score + Pre-Buy Gate
+│   ├── AGENTS.md              # workspace conventions + memory schemas
+│   ├── IDENTITY.md            # blank — filled on first run
+│   ├── TOOLS.md               # watchlist, whales, budgets — user-tunable
+│   ├── BOOTSTRAP.md           # first-run walkthrough
+│   ├── HEARTBEAT.md           # idle-cycle routine
+│   └── USER.md                # collector profile — filled on first run
+└── skills/opensea/            # submodule: opensea-skill @ v2.1.0
+    ├── SKILL.md
+    ├── references/*.md        # rest-api, seaport, wallet-setup, wallet-policies, …
+    └── scripts/*.sh           # opensea-fulfill-listing.sh, opensea-stream-collection.sh, …
+```
 
-### 4. 💬 Interaction & Interfaces
-Agents that directly interact with users or act as an interface layer.
-
-**Use this for:**
-- Chatbots
-- Assistants
-- Conversational workflows
-- User-facing AI tools
-
-**Examples:**
-- Slack assistant
-- Customer support bot
-
----
-
-### 5. 🧩 Orchestration & Multi-Agent Systems
-Agents that coordinate other agents, tools, or workflows.
-
-**Use this for:**
-- Multi-step pipelines
-- Agent coordination
-- Tool routing / decision engines
-- Complex workflow composition
-
-**Examples:**
-- Research pipeline orchestrator
-- Multi-agent task runner
-- Tool selection / routing agent
----
-
-## How can I create a template?
-See here: https://docs.pinata.cloud/agents/templates/creating
-
-## How can I get my template on the Pinata Agent marketplace?
-Currently marketplace inclusion is limited to ecosystem partners. Reach out to partnerships@pinata.cloud for partner information 
-
-## 🚀 Contributing a Template
-
-We welcome contributions from the community! To submit a new agent template, follow the process below.
-
-### 1. Fork the Repository
-
-1) Create a fork of this repository and clone it locally
+## Updating the skill
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/pinata-agent-templates.git
-cd pinata-agent-templates
-
-2) Create your agent template inside the appropriate agent type folder (e.g., `openclaw/`)
-
-3) Submit a PR to the repository
+git -C skills/opensea fetch --tags
+git -C skills/opensea checkout v2.2.0   # or whichever tag you want
+git add skills/opensea && git commit -m "chore: bump opensea-skill to v2.2.0"
+```
