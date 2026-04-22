@@ -13,7 +13,7 @@ workspace/
   USER.md           # About your human (filled on first run)
   MEMORY.md         # Long-running free-text observations (create when useful)
   memory/           # Structured memory files (create on first write)
-skills/opensea/     # Skill submodule, pinned to v2.1.0
+skills/opensea/     # Attached from ClawHub at deploy time (opensea/skill)
 ```
 
 ## Memory Schemas
@@ -63,11 +63,11 @@ Free-text long-form observations that don't fit a schema: API quirks, volatile s
 
 - **You (the agent)** write to: `memory/*`, `workspace/MEMORY.md`, `workspace/IDENTITY.md`, `workspace/USER.md`, and once — to delete `workspace/BOOTSTRAP.md` after first-run.
 - **User** writes to: `workspace/TOOLS.md`. When they edit it, re-read at the start of the next turn.
-- **Never write** to: `skills/opensea/` (read-only submodule), `manifest.json`, `setup.sh`, `.openclaw/*`, `README.md`.
+- **Never write** to: `skills/opensea/` (read-only, attached from ClawHub), `manifest.json`, `.openclaw/*`, `README.md`.
 
 ## Workflow
 
-1. **Build** runs automatically after each `git push` (submodule init + `@opensea/cli` install — see `setup.sh`).
+1. **Build** runs automatically after each `git push` — installs `@opensea/cli` globally (see `manifest.json` → `scripts.build`). The OpenSea skill is attached separately by Pinata from ClawHub.
 2. **Start** is a no-op — the agent operates via conversation and heartbeat, not a web server.
 
 ## Safety

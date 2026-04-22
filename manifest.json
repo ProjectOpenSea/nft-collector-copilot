@@ -14,8 +14,11 @@
     "authorUrl": "https://github.com/ProjectOpenSea/opensea-skill",
     "authorLogoUrl": "https://static.seadn.io/logos/Logomark-Blue.png"
   },
+  "skills": [
+    { "clawhub_slug": "opensea/skill", "name": "OpenSea" }
+  ],
   "scripts": {
-    "build": "bash setup.sh",
+    "build": "npm install -g @opensea/cli",
     "start": ""
   },
   "routes": []
