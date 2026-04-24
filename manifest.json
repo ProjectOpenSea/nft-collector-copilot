@@ -15,7 +15,7 @@
     "authorLogoUrl": "https://static.seadn.io/logos/Logomark-Blue.png"
   },
   "skills": [
-    { "clawhub_slug": "opensea/opensea-skill", "name": "OpenSea" }
+    { "clawhub_slug": "opensea/opensea-marketplace", "name": "OpenSea" }
   ],
   "scripts": {
     "build": "npm install -g @opensea/cli",

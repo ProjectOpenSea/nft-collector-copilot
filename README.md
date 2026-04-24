@@ -21,7 +21,7 @@ Supported chains: see `workspace/TOOLS.md`. Mainnets only by default.
 ## What's bundled
 
 - [`@opensea/cli`](https://github.com/ProjectOpenSea/opensea-cli) — installed globally at build time.
-- [`opensea/opensea-skill`](https://clawhub.ai/opensea/opensea-skill) — attached via `manifest.json` → `skills` and mounted at `skills/opensea/`. SKILL.md + reference docs + shell scripts for Seaport, swaps, stream events, wallet setup, and policy templates. Pinata pulls the latest published version at deploy time.
+- [`opensea/opensea-marketplace`](https://clawhub.ai/opensea/opensea-marketplace) — attached via `manifest.json` → `skills` and mounted at `skills/opensea/`. SKILL.md + reference docs + shell scripts for Seaport, swaps, stream events, wallet setup, and policy templates. Pinata pulls the latest published version at deploy time.
 
 ## Secrets you'll need
 
@@ -74,7 +74,7 @@ Full walkthrough: `skills/opensea/references/wallet-setup.md`. Policy templates:
 
 ```
 .
-├── manifest.json              # Pinata agent manifest — attaches opensea/opensea-skill from ClawHub
+├── manifest.json              # Pinata agent manifest — attaches opensea/opensea-marketplace from ClawHub
 ├── .openclaw/
 │   ├── openclaw.json
 │   └── SOUL.md                # short canonical persona — points at workspace/SOUL.md
@@ -92,4 +92,4 @@ At deploy time Pinata attaches the OpenSea skill under `skills/opensea/` (SKILL.
 
 ## Updating the skill
 
-Skill versions are managed on ClawHub, not in this template. To pick up a new version, no repo change is needed — Pinata pulls the latest published version of `opensea/opensea-skill` on each deploy. To pin to a specific version, replace `clawhub_slug` in `manifest.json` with a `cid` for that version.
+Skill versions are managed on ClawHub, not in this template. To pick up a new version, no repo change is needed — Pinata pulls the latest published version of `opensea/opensea-marketplace` on each deploy. To pin to a specific version, replace `clawhub_slug` in `manifest.json` with a `cid` for that version.
