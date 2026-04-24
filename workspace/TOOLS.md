@@ -5,7 +5,7 @@ _User-tunable. Edit this file to change what the agent watches, who it follows, 
 ## Stack
 
 - **OpenSea CLI:** `@opensea/cli` — installed globally at build time. Use `opensea --help` for the command tree.
-- **OpenSea skill:** `skills/opensea/` — git submodule pinned to `v2.1.0`.
+- **OpenSea skill:** `skills/opensea/` — attached from ClawHub (`opensea/opensea-marketplace`) at deploy time.
 - **Wallet:** Privy server wallet, env-configured (`PRIVY_APP_ID`, `PRIVY_APP_SECRET`, `PRIVY_WALLET_ID`).
 
 ## Watchlist

@@ -21,7 +21,7 @@ Supported chains: see `workspace/TOOLS.md`. Mainnets only by default.
 ## What's bundled
 
 - [`@opensea/cli`](https://github.com/ProjectOpenSea/opensea-cli) — installed globally at build time.
-- [`ProjectOpenSea/opensea-skill`](https://github.com/ProjectOpenSea/opensea-skill) at `skills/opensea/` (git submodule, pinned to `v2.1.0`) — SKILL.md + 7 reference docs + shell scripts for Seaport, swaps, stream events, wallet setup, and policy templates.
+- [`opensea/opensea-marketplace`](https://clawhub.ai/opensea/opensea-marketplace) — attached via `manifest.json` → `skills` and mounted at `skills/opensea/`. SKILL.md + reference docs + shell scripts for Seaport, swaps, stream events, wallet setup, and policy templates. Pinata pulls the latest published version at deploy time.
 
 ## Secrets you'll need
 
@@ -74,29 +74,22 @@ Full walkthrough: `skills/opensea/references/wallet-setup.md`. Policy templates:
 
 ```
 .
-├── manifest.json              # Pinata agent manifest
-├── setup.sh                   # build: submodule init + CLI install
+├── manifest.json              # Pinata agent manifest — attaches opensea/opensea-marketplace from ClawHub
 ├── .openclaw/
 │   ├── openclaw.json
 │   └── SOUL.md                # short canonical persona — points at workspace/SOUL.md
-├── workspace/
-│   ├── SOUL.md                # guardrails + Conviction Score + Pre-Buy Gate
-│   ├── AGENTS.md              # workspace conventions + memory schemas
-│   ├── IDENTITY.md            # blank — filled on first run
-│   ├── TOOLS.md               # watchlist, whales, budgets — user-tunable
-│   ├── BOOTSTRAP.md           # first-run walkthrough
-│   ├── HEARTBEAT.md           # idle-cycle routine
-│   └── USER.md                # collector profile — filled on first run
-└── skills/opensea/            # submodule: opensea-skill @ v2.1.0
-    ├── SKILL.md
-    ├── references/*.md        # rest-api, seaport, wallet-setup, wallet-policies, …
-    └── scripts/*.sh           # opensea-fulfill-listing.sh, opensea-stream-collection.sh, …
+└── workspace/
+    ├── SOUL.md                # guardrails + Conviction Score + Pre-Buy Gate
+    ├── AGENTS.md              # workspace conventions + memory schemas
+    ├── IDENTITY.md            # blank — filled on first run
+    ├── TOOLS.md               # watchlist, whales, budgets — user-tunable
+    ├── BOOTSTRAP.md           # first-run walkthrough
+    ├── HEARTBEAT.md           # idle-cycle routine
+    └── USER.md                # collector profile — filled on first run
 ```
+
+At deploy time Pinata attaches the OpenSea skill under `skills/opensea/` (SKILL.md + `references/*.md` + `scripts/*.sh`) — not checked into this repo.
 
 ## Updating the skill
 
-```bash
-git -C skills/opensea fetch --tags
-git -C skills/opensea checkout v2.2.0   # or whichever tag you want
-git add skills/opensea && git commit -m "chore: bump opensea-skill to v2.2.0"
-```
+Skill versions are managed on ClawHub, not in this template. To pick up a new version, no repo change is needed — Pinata pulls the latest published version of `opensea/opensea-marketplace` on each deploy. To pin to a specific version, replace `clawhub_slug` in `manifest.json` with a `cid` for that version.
