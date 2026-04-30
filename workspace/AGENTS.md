@@ -55,16 +55,45 @@ Avoids re-running `nfts list-by-account` on every heartbeat. Invalidate a chain'
 
 So `events by-account` only streams the tail since last heartbeat.
 
-### `memory/scan_state.json` — once-per-day scan timestamps
+### `memory/scan_state.json` — once-per-day scan timestamps + resumable cursors
 
-Tracks the last run of HEARTBEAT.md steps 5 (drops) and 6 (trending), which run at most every ~20 hours.
+Tracks the last run of HEARTBEAT.md steps 5 (drops) and 6 (trending), which run at most every ~20 hours. Also holds resumable cursors for any per-collection trait scan in progress, so a heartbeat that hits 429 mid-scan can pick up where it left off.
 
 ```json
 {
   "last_drop_scan": "2026-04-17T02:00:00Z",
-  "last_trending_scan": "2026-04-17T02:00:00Z"
+  "last_trending_scan": "2026-04-17T02:00:00Z",
+  "trait_scans": {
+    "<slug>": {
+      "started_at": "2026-04-17T02:00:00Z",
+      "completed_at": null,
+      "next_cursor": "abc123",
+      "tokens_seen": 1450
+    }
+  }
 }
 ```
+
+When a trait scan completes, set `completed_at`, clear `next_cursor`, and write the result to `memory/trait_holders.<slug>.json` (below).
+
+### `memory/trait_holders.<slug>.json` — per-collection trait index
+
+Built by the whole-collection scan pattern in SOUL.md → *How You Work* → *Trait filtering*. Re-scan at most once per day. Index is `trait_type` → `value` → `token_id[]`.
+
+```json
+{
+  "slug": "tiny-dinos-eth",
+  "updated_at": "2026-04-17T02:30:00Z",
+  "by_trait": {
+    "feet": {
+      "hoverboard": ["6292", "5996"],
+      "skateboard": []
+    }
+  }
+}
+```
+
+Only create one of these for collections the user has explicitly asked to track by trait — they're expensive to maintain.
 
 ### `MEMORY.md` (in `workspace/`, not `memory/`)
 
