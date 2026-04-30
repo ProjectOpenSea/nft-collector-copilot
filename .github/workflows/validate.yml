@@ -1,0 +1,83 @@
+name: validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate manifest.json
+        run: |
+          set -euo pipefail
+          jq . manifest.json > /dev/null
+
+          # Required top-level keys + types
+          jq -e '.version | type == "number"' manifest.json > /dev/null
+          jq -e '.agent | type == "object"' manifest.json > /dev/null
+          jq -e '.template | type == "object"' manifest.json > /dev/null
+          jq -e '.skills | type == "array"' manifest.json > /dev/null
+          jq -e '.scripts | type == "object"' manifest.json > /dev/null
+          jq -e '.routes | type == "array"' manifest.json > /dev/null
+
+          # Agent shape
+          jq -e '.agent.name | type == "string" and length > 0' manifest.json > /dev/null
+          jq -e '.agent.description | type == "string" and length > 0' manifest.json > /dev/null
+          jq -e '.agent.vibe | type == "string"' manifest.json > /dev/null
+          jq -e '.agent.emoji | type == "string"' manifest.json > /dev/null
+
+          # Template shape
+          jq -e '.template.slug | type == "string" and test("^[a-z0-9-]+$")' manifest.json > /dev/null
+          jq -e '.template.version | type == "string" and test("^[0-9]+\\.[0-9]+\\.[0-9]+$")' manifest.json > /dev/null
+          jq -e '.template.category | type == "string"' manifest.json > /dev/null
+          jq -e '.template.tags | type == "array" and length > 0' manifest.json > /dev/null
+          jq -e '.template.authorName | type == "string"' manifest.json > /dev/null
+
+          # Skills shape — every entry needs clawhub_slug + name
+          jq -e 'all(.skills[]; .clawhub_slug | type == "string" and test("^[a-z0-9-]+/[a-z0-9-]+$"))' manifest.json > /dev/null
+          jq -e 'all(.skills[]; .name | type == "string" and length > 0)' manifest.json > /dev/null
+
+          # Scripts shape — build is required (start is optional)
+          jq -e '.scripts.build | type == "string" and length > 0' manifest.json > /dev/null
+
+          echo "manifest.json OK"
+
+      - name: Validate .openclaw/openclaw.json
+        run: |
+          set -euo pipefail
+          jq . .openclaw/openclaw.json > /dev/null
+          jq -e '.compaction | type == "string"' .openclaw/openclaw.json > /dev/null
+          jq -e '.maxConcurrent | type == "number"' .openclaw/openclaw.json > /dev/null
+          echo ".openclaw/openclaw.json OK"
+
+      - name: Check required workspace files exist
+        run: |
+          set -euo pipefail
+          required=(
+            ".openclaw/SOUL.md"
+            "workspace/SOUL.md"
+            "workspace/AGENTS.md"
+            "workspace/IDENTITY.md"
+            "workspace/TOOLS.md"
+            "workspace/BOOTSTRAP.md"
+            "workspace/HEARTBEAT.md"
+            "workspace/USER.md"
+            "README.md"
+            "LICENSE"
+          )
+          missing=0
+          for f in "${required[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "missing: $f"
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ]
+          echo "workspace files OK"
+
+      - name: Lint markdown — no broken in-repo links
+        run: python3 .github/scripts/check_links.py
