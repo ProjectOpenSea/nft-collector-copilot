@@ -19,15 +19,18 @@ See `README.md` → *Repository layout*. The short version: `manifest.json` defi
 
 ## Versioning
 
-`manifest.json` has two version fields:
+`manifest.json` has one version field — `version` (top-level integer) — which is the manifest **schema** version (currently `1`). Don't touch it unless the schema itself changes.
 
-- `version` (top-level integer) — manifest **schema** version. Don't touch unless the schema itself changes.
-- `template.version` (semver string) — this template's version. Bump on every change that ships to users:
-  - patch: doc tweaks, prompt fixes
-  - minor: new heartbeat steps, new memory schemas, new TOOLS.md fields
-  - major: breaking changes to memory layout, manifest shape, or env requirements
+The template doesn't carry its own version field; track template revisions through git tags instead:
 
-Tag releases on `main` after merge: `git tag v1.0.1 && git push --tags`.
+```bash
+git tag v1.0.1 && git push --tags
+```
+
+Use semver for tags:
+- patch: doc tweaks, prompt fixes
+- minor: new heartbeat steps, new memory schemas, new TOOLS.md fields
+- major: breaking changes to memory layout, manifest shape, or env requirements
 
 ## Style
 
