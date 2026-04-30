@@ -44,6 +44,17 @@ jobs:
           # Scripts shape — build is required (start is optional)
           jq -e '.scripts.build | type == "string" and length > 0' manifest.json > /dev/null
 
+          # Secrets shape — every entry needs name + description; required defaults to true
+          jq -e '.secrets | type == "array" and length > 0' manifest.json > /dev/null
+          jq -e 'all(.secrets[]; .name | type == "string" and test("^[A-Z][A-Z0-9_]*$"))' manifest.json > /dev/null
+          jq -e 'all(.secrets[]; .description | type == "string" and length > 0)' manifest.json > /dev/null
+
+          # All four required env vars must be declared so Pinata prompts for them at deploy time
+          for v in OPENSEA_API_KEY PRIVY_APP_ID PRIVY_APP_SECRET PRIVY_WALLET_ID; do
+            jq -e --arg v "$v" 'any(.secrets[]; .name == $v and .required == true)' manifest.json > /dev/null \
+              || { echo "missing required secret: $v"; exit 1; }
+          done
+
           echo "manifest.json OK"
 
       - name: Validate .openclaw/openclaw.json

@@ -18,6 +18,28 @@
   "skills": [
     { "clawhub_slug": "opensea-marketplace", "name": "OpenSea" }
   ],
+  "secrets": [
+    {
+      "name": "OPENSEA_API_KEY",
+      "description": "OpenSea API key — used for all reads, fulfillment, and swaps. Get one instantly with: curl -s -X POST https://api.opensea.io/api/v2/auth/keys | jq -r .api_key",
+      "required": true
+    },
+    {
+      "name": "PRIVY_APP_ID",
+      "description": "Privy application ID. Create an app at https://dashboard.privy.io and copy the App ID.",
+      "required": true
+    },
+    {
+      "name": "PRIVY_APP_SECRET",
+      "description": "Privy application secret — same dashboard page as the App ID. Treat as a password.",
+      "required": true
+    },
+    {
+      "name": "PRIVY_WALLET_ID",
+      "description": "Privy server wallet ID. Create a server wallet (see skills/opensea/references/wallet-setup.md) and paste its id here.",
+      "required": true
+    }
+  ],
   "scripts": {
     "build": "npm install -g @opensea/cli"
   },
