@@ -1,6 +1,6 @@
 # Contributing
 
-This is the **template** for the NFT Collector Copilot agent on Pinata. The OpenSea skill it depends on lives in [`ProjectOpenSea/opensea-skill`](https://github.com/ProjectOpenSea/opensea-skill) and is published to ClawHub as `opensea/opensea-marketplace`. Skill changes do **not** belong here — open them against that repo. Template changes (workspace docs, manifest, README) belong here.
+This is the **template** for the NFT Collector Copilot agent on Pinata. The OpenSea skill it depends on lives in [`ProjectOpenSea/opensea-skill`](https://github.com/ProjectOpenSea/opensea-skill) and is published to ClawHub as `opensea-marketplace`. Skill changes do **not** belong here — open them against that repo. Template changes (workspace docs, manifest, README) belong here.
 
 ## Repo layout
 

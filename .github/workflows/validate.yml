@@ -38,7 +38,7 @@ jobs:
           jq -e '.template.authorName | type == "string"' manifest.json > /dev/null
 
           # Skills shape — every entry needs clawhub_slug + name
-          jq -e 'all(.skills[]; .clawhub_slug | type == "string" and test("^[a-z0-9-]+/[a-z0-9-]+$"))' manifest.json > /dev/null
+          jq -e 'all(.skills[]; .clawhub_slug | type == "string" and test("^[a-z0-9-]+$"))' manifest.json > /dev/null
           jq -e 'all(.skills[]; .name | type == "string" and length > 0)' manifest.json > /dev/null
 
           # Scripts shape — build is required (start is optional)

@@ -13,7 +13,7 @@ workspace/
   USER.md           # About your human (filled on first run)
   MEMORY.md         # Long-running free-text observations (create when useful)
   memory/           # Structured memory files (create on first write)
-skills/opensea/     # Attached from ClawHub at deploy time (opensea/opensea-marketplace)
+skills/opensea/     # Attached from ClawHub at deploy time (opensea-marketplace)
 ```
 
 ## Memory Schemas
