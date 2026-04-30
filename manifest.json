@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agents.pinata.cloud/schemas/manifest.v1.json",
   "version": 1,
   "agent": {
     "name": "NFT Collector Copilot",
@@ -8,7 +9,6 @@
   },
   "template": {
     "slug": "nft-collector-copilot",
-    "version": "1.0.0",
     "category": "actions & transactions",
     "tags": ["nft", "opensea", "seaport", "privy", "collector", "defi"],
     "authorName": "OpenSea",
