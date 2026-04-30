@@ -8,6 +8,7 @@
   },
   "template": {
     "slug": "nft-collector-copilot",
+    "version": "1.0.0",
     "category": "actions & transactions",
     "tags": ["nft", "opensea", "seaport", "privy", "collector", "defi"],
     "authorName": "OpenSea",
@@ -18,8 +19,7 @@
     { "clawhub_slug": "opensea/opensea-marketplace", "name": "OpenSea" }
   ],
   "scripts": {
-    "build": "npm install -g @opensea/cli",
-    "start": ""
+    "build": "npm install -g @opensea/cli"
   },
   "routes": []
 }

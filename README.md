@@ -4,7 +4,7 @@ An AI agent for NFT collectors. Watches [OpenSea](https://opensea.io), scores ev
 
 ## The killer feature: **Whale-Cross Alerts**
 
-Point it at a list of wallets you respect (vitalik.eth, your favorite PFP whale, whoever) and your watchlist. When a tracked whale buys, mints, or lists into any collection — whether it's on your watchlist or not — you get a one-line alert within a heartbeat, with a one-click follow gated by your Privy spend cap. Nobody else ships this because nobody else has the OpenSea Stream API, a TEE-enforced wallet, and a scoring rubric in one box.
+Point it at a list of wallets you respect (vitalik.eth, your favorite PFP whale, whoever) and your watchlist. When a tracked whale buys, mints, or lists into any collection — whether it's on your watchlist or not — you get a one-line alert within a heartbeat, with a one-click follow gated by your Privy spend cap. Few others ship this — it takes the OpenSea events feed, a TEE-enforced wallet, and a disciplined scoring rubric in the same box.
 
 ## What it does
 
@@ -66,7 +66,7 @@ Full walkthrough: `skills/opensea/references/wallet-setup.md`. Policy templates:
 - **Env-only credentials.** No private keys in the repo or agent workspace.
 - **Privy policy is the hard ceiling.** The spend cap, destination allowlist, and chain filter are enforced inside a TEE before signing.
 - **Per-turn confirmation for material actions.** Any buy, offer acceptance, approval, or transfer above `confirmAboveEth` (in `workspace/TOOLS.md`) needs explicit "yes" in the current turn. Snipes can bypass this only when the listing is fully inside your configured envelope — see `workspace/SOUL.md` → *Hierarchy of Ceilings*.
-- **Sell-side always confirms.** The native-value Privy cap doesn't constrain WETH offer acceptances, so those always require per-turn approval regardless of price.
+- **Sell-side always confirms.** Privy's native-value cap is denominated in the chain's native token (ETH, etc.) — it does **not** apply to WETH transfers, which is how Seaport offer acceptances pay out. Sells, offer acceptances, and ERC721/1155 approvals therefore always require per-turn confirmation, regardless of price.
 - **Pre-Buy Gate.** Wash trades, thin markets, uneconomic gas, and fee surprises all block a buy before it's proposed.
 - **Policy rejections surface verbatim.** No workarounds.
 
@@ -75,17 +75,19 @@ Full walkthrough: `skills/opensea/references/wallet-setup.md`. Policy templates:
 ```
 .
 ├── manifest.json              # Pinata agent manifest — attaches opensea/opensea-marketplace from ClawHub
+├── LICENSE                    # MIT
 ├── .openclaw/
-│   ├── openclaw.json
+│   ├── openclaw.json          # OpenClaw harness config (compaction, concurrency)
 │   └── SOUL.md                # short canonical persona — points at workspace/SOUL.md
 └── workspace/
     ├── SOUL.md                # guardrails + Conviction Score + Pre-Buy Gate
     ├── AGENTS.md              # workspace conventions + memory schemas
     ├── IDENTITY.md            # blank — filled on first run
     ├── TOOLS.md               # watchlist, whales, budgets — user-tunable
-    ├── BOOTSTRAP.md           # first-run walkthrough
+    ├── BOOTSTRAP.md           # first-run walkthrough — agent deletes after completion
     ├── HEARTBEAT.md           # idle-cycle routine
-    └── USER.md                # collector profile — filled on first run
+    ├── USER.md                # collector profile — filled on first run
+    └── memory/                # created at runtime — floors, actions, taste, scan state
 ```
 
 At deploy time Pinata attaches the OpenSea skill under `skills/opensea/` (SKILL.md + `references/*.md` + `scripts/*.sh`) — not checked into this repo.

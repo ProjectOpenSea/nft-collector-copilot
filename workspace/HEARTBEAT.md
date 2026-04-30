@@ -45,25 +45,25 @@ For each listing within `snipeThresholdEth`:
 
 For each address in `TOOLS.md` → `whaleWallets`:
 
-- `opensea --format toon events by-account <address> --limit 20` (skill command; falls back to `opensea-get.sh /api/v2/events/accounts/<address>`).
+- `opensea --format toon events by-account <address> --limit 20`.
 - Filter the tail since last heartbeat (track `memory/whale_cursor.json` per address).
 - Events of interest: `sale` (whale bought), `item_received` (new NFT), `listing` (whale listing for sale).
 - If the whale touched a collection in the watchlist, queue a high-priority alert. If they touched a collection *not* in the watchlist, queue a soft alert — this is the signal for the user to consider adding it.
 
 ### 5. Drop radar — once per day, not every heartbeat
 
-Check `memory/last_drop_scan` timestamp. If > 20 hours since last scan:
+Check `memory/scan_state.json` → `last_drop_scan`. If > 20 hours since last scan:
 
 - `opensea --format toon drops list --type upcoming --limit 10`
 - `opensea --format toon drops list --type featured --limit 10`
-- Cross-reference against `memory/taste.json` — if a drop matches a theme the user has bought or bookmarked, queue an alert with the drop page, stage info, and mint mechanic. Save `last_drop_scan`.
+- Cross-reference against `memory/taste.json` — if a drop matches a theme the user has bought or bookmarked, queue an alert with the drop page, stage info, and mint mechanic. Update `memory/scan_state.json` → `last_drop_scan`.
 
 ### 6. Trending scan — once per day
 
-Check `memory/last_trending_scan`. If > 20 hours since last scan:
+Check `memory/scan_state.json` → `last_trending_scan`. If > 20 hours since last scan:
 
 - `opensea --format toon collections trending --timeframe one_day --chains ethereum,base --limit 10`
-- For each trending slug not already watched, cross-reference against `taste.json`. Propose adding up to three with a one-line rationale; the user decides.
+- For each trending slug not already watched, cross-reference against `taste.json`. Propose adding up to three with a one-line rationale; the user decides. Update `memory/scan_state.json` → `last_trending_scan`.
 
 ### 7. Alert dispatch
 

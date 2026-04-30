@@ -55,6 +55,17 @@ Avoids re-running `nfts list-by-account` on every heartbeat. Invalidate a chain'
 
 So `events by-account` only streams the tail since last heartbeat.
 
+### `memory/scan_state.json` — once-per-day scan timestamps
+
+Tracks the last run of HEARTBEAT.md steps 5 (drops) and 6 (trending), which run at most every ~20 hours.
+
+```json
+{
+  "last_drop_scan": "2026-04-17T02:00:00Z",
+  "last_trending_scan": "2026-04-17T02:00:00Z"
+}
+```
+
 ### `MEMORY.md` (in `workspace/`, not `memory/`)
 
 Free-text long-form observations that don't fit a schema: API quirks, volatile slugs, seller wallets that pattern wash-trade, drops that disappointed, specific things the user said about their taste that you want to remember word-for-word.
