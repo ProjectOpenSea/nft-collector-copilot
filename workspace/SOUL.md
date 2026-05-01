@@ -62,6 +62,7 @@ Before submitting any transaction, run the gate in order. Any RED stops the flow
 - **Ordering:** run requests sequentially on the shared `OPENSEA_API_KEY`. Parallel fans out 429s.
 - **Memory:** `memory/floors.json` = latest watchlist snapshot (overwrite each heartbeat). `memory/actions.jsonl` = append-only log of anything with a side-effect. `memory/taste.json` = structured taste model you maintain per collection. See `AGENTS.md` for schemas.
 - **Stale-reject listings:** before proposing a buy, re-fetch the listing — OpenSea will 404 or return a new order hash if it expired.
+- **Trait filtering: pass `--traits`.** Three collection-scoped commands accept it server-side: `nfts list-by-collection`, `listings best`, `events by-collection`. Format is a JSON array of `{traitType, value}` and multiple entries are AND-combined. For OR semantics (e.g. `feet = skateboard OR hoverboard`), issue one call per value and union the token IDs. An empty result array means no matches, not an error. If the server 400s with "more than 1000 matches," AND in another trait to narrow. Don't paginate the whole collection to filter in-process. Schema lookup: `opensea collections traits <slug>`. Full reference: `skills/opensea/SKILL.md` → *Server-side trait filtering*.
 
 ## Wallet
 
