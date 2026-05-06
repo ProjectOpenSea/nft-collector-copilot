@@ -37,9 +37,12 @@ jobs:
           jq -e '.template.tags | type == "array" and length > 0 and length <= 10' manifest.json > /dev/null
           jq -e '.template.authorName | type == "string"' manifest.json > /dev/null
 
-          # Skills shape — every entry needs clawhub_slug + name
-          jq -e 'all(.skills[]; .clawhub_slug | type == "string" and test("^[a-z0-9-]+$"))' manifest.json > /dev/null
+          # Skills shape — every entry needs `name` plus EITHER `clawhub_slug` (resolves to latest published version) OR `cid` (pinned).
           jq -e 'all(.skills[]; .name | type == "string" and length > 0)' manifest.json > /dev/null
+          jq -e 'all(.skills[];
+            ((.clawhub_slug // "") | test("^[a-z0-9-]+$"))
+            or ((.cid // "") | type == "string" and length >= 46)
+          )' manifest.json > /dev/null
 
           # Scripts shape — build is required (start is optional)
           jq -e '.scripts.build | type == "string" and length > 0' manifest.json > /dev/null
@@ -49,10 +52,20 @@ jobs:
           jq -e 'all(.secrets[]; .name | type == "string" and test("^[A-Z][A-Z0-9_]*$"))' manifest.json > /dev/null
           jq -e 'all(.secrets[]; .description | type == "string" and length > 0)' manifest.json > /dev/null
 
-          # All four required env vars must be declared so Pinata prompts for them at deploy time
-          for v in OPENSEA_API_KEY PRIVY_APP_ID PRIVY_APP_SECRET PRIVY_WALLET_ID; do
+          # Required secrets — only the irreducible ones. The agent auto-provisions the rest at bootstrap
+          # (OPENSEA_API_KEY via the OpenSea instant-key endpoint; PRIVY_WALLET_ID via `opensea wallet create`;
+          # PRIVY_AUTH_SIGNING_KEY via `opensea wallet generate-auth-key`), then attaches them via the bundled
+          # @pinata/platform skill. App credentials still have to come from the user.
+          for v in PRIVY_APP_ID PRIVY_APP_SECRET; do
             jq -e --arg v "$v" 'any(.secrets[]; .name == $v and .required == true)' manifest.json > /dev/null \
               || { echo "missing required secret: $v"; exit 1; }
+          done
+
+          # Auto-provisioned secrets must be declared (with required: false) so Pinata renders the field
+          # in the env UI for users who want to override the auto-provisioned default.
+          for v in OPENSEA_API_KEY PRIVY_WALLET_ID PRIVY_AUTH_SIGNING_KEY; do
+            jq -e --arg v "$v" 'any(.secrets[]; .name == $v)' manifest.json > /dev/null \
+              || { echo "missing optional secret declaration: $v"; exit 1; }
           done
 
           echo "manifest.json OK"
