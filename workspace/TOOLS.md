@@ -6,11 +6,12 @@ _User-tunable. Edit this file to change what the agent watches, who it follows, 
 
 - **OpenSea CLI:** `@opensea/cli` — installed globally at build time. Use `opensea --help` for the command tree.
 - **OpenSea skill:** `skills/opensea/` — attached from ClawHub (`opensea-marketplace`) at deploy time.
-- **Wallet:** Privy server wallet, env-configured (`PRIVY_APP_ID`, `PRIVY_APP_SECRET`, `PRIVY_WALLET_ID`).
+- **Wallet:** Privy server wallet. Env: `PRIVY_APP_ID`, `PRIVY_APP_SECRET`, `PRIVY_WALLET_ID`, `PRIVY_AUTH_SIGNING_KEY` (additional_signer; the matching owner key is off-machine on the user's host).
+- **Pinata Platform skill:** `skills/<pinata-platform>/cli.mjs` — bundled. Used by `BOOTSTRAP.md` to attach secrets and restart during setup. Not used after BOOTSTRAP completes.
 
 ## Watchlist
 
-Collections to track on every heartbeat. Ceilings here are advisory — the Privy policy is the real enforcement. See `SOUL.md` → *Hierarchy of Ceilings*.
+Collections to track on every heartbeat. Ceilings here are advisory pacing nudges. The real enforcement is the Privy per-tx policy plus wallet float — see `SOUL.md` → *Hierarchy of Ceilings*.
 
 ```yaml
 watchlist:
@@ -67,11 +68,24 @@ chains:
 
 ## Budget
 
+Pacing nudges, NOT security ceilings. The real aggregate bound is the agent wallet's funded balance per chain (see `floatPerChain` below and `SOUL.md` → *Hierarchy of Ceilings*).
+
 ```yaml
 budget:
-  dailyCapEth: 0.1            # agent stops initiating any value action after this much spent today
+  dailyCapEth: 0.1            # self-policed "stop initiating after this much spent today" nudge — not enforced externally
   confirmAboveEth: 0.02       # any value action ≥ this needs per-turn "yes" (bypassed only by snipe envelope)
   gasBufferEth: 0.005         # reserve this much ETH per chain for gas; pre-buy gate refuses below
+```
+
+## Float
+
+User-set hot-wallet float per chain. This is the **real** aggregate ceiling — the agent cannot exceed wallet balance. Replenishment is the user's job, on whatever cadence they pick. See `skills/opensea/references/wallet-funding.md`.
+
+```yaml
+floatPerChain:
+  # ethereum: 0.5             # ETH the user keeps in the agent wallet on each chain
+  # base: 0.2
+  # arbitrum: 0.1
 ```
 
 ## Alerts
