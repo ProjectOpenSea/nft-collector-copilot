@@ -28,14 +28,24 @@ If `PINATA_CLI` is empty, the skill didn't mount. Tell the user, point at `manif
 Otherwise:
 
 ```bash
-KEY=$(curl -s -X POST https://api.opensea.io/api/v2/auth/keys | jq -r .api_key)
-[ -n "$KEY" ] && [ "$KEY" != "null" ] || { echo "instant key fetch failed"; exit 1; }
+RESPONSE=$(curl -s -w "\n%{http_code}" -X POST https://api.opensea.io/api/v2/auth/keys)
+STATUS=$(printf '%s' "$RESPONSE" | tail -1)
+BODY=$(printf '%s' "$RESPONSE" | sed '$d')
+
+if [ "$STATUS" = "429" ]; then
+  echo "OpenSea instant-key endpoint is rate-limited (3 keys/hr/IP). Either wait an hour and let me retry, or paste your own OPENSEA_API_KEY into Pinata's env UI and restart."
+  exit 1
+fi
+
+KEY=$(printf '%s' "$BODY" | jq -r .api_key)
+[ -n "$KEY" ] && [ "$KEY" != "null" ] || { echo "instant key fetch failed (status $STATUS): $BODY"; exit 1; }
+
 node "$PINATA_CLI" create-secret OPENSEA_API_KEY "$KEY" --attach
 ```
 
 Then tell the user:
 
-> "I've fetched a free-tier OpenSea API key and attached it. Restarting now to pick up the new env var — I'll come back from a fresh session and resume from where we left off."
+> "I've fetched a free-tier OpenSea API key and attached it. Restarting now — I'll come back as a fresh session (no chat memory) and pick up from `IDENTITY.md` + env."
 
 Then:
 
@@ -61,7 +71,7 @@ node "$PINATA_CLI" create-secret PRIVY_APP_SECRET "$SECRET" --attach
 node "$PINATA_CLI" restart
 ```
 
-Stop. Resume cold from Phase 2.
+Stop. The agent comes back as a fresh session and resumes at Phase 2.
 
 If the user adds them via Pinata UI directly, ask them to restart from the UI — same outcome.
 
@@ -85,7 +95,7 @@ Create the wallet without an owner (it will be hardened in Phase 3):
 opensea wallet create --chain-type ethereum --format json
 ```
 
-Capture the wallet `id` from the output. The CLI will print a loud `WARNING: created without --owner-public-key` to stderr — that's expected; we register the owner in the off-machine ceremony in Phase 3.
+Capture the wallet `id` from the output. The CLI will print a loud `WARNING: created without --owner-public-key` to stderr — that's expected; we register the owner in the off-machine ceremony in Phase 3. The brief unhardened window between wallet creation and owner registration is acceptable because the wallet has zero balance and no policy attached during this window — there is nothing to lose if the credentials in env were misused. Phase 3 refuses to advance to any signing-capable step until owner gating is verified.
 
 Attach both secrets:
 
@@ -103,7 +113,7 @@ Record in `IDENTITY.md` under `## Wallet`:
 
 Tell the user what just happened, then restart:
 
-> "Wallet `<address>` created. I generated my own additional_signer keypair and stored the private half securely. Restarting to pick up the new env vars — when I come back, I'll walk you through the one-time off-machine ceremony to register an owner key."
+> "Wallet `<address>` created. I generated my own additional_signer keypair and stored the private half as `PRIVY_AUTH_SIGNING_KEY`. Restarting now — I'll come back as a fresh session and walk you through the one-time off-machine ceremony to register an owner key."
 
 ```bash
 node "$PINATA_CLI" restart
@@ -138,7 +148,9 @@ Otherwise (most likely on first arrival here), tell the user:
 >
 > 2. Register both keys on the wallet: your owner public key as `owner_id`, AND my additional_signer public key (`<additional_signer_pubkey from IDENTITY.md>`) as a signer. Both via the Node script in https://github.com/ProjectOpenSea/opensea-skill/blob/main/docs/policy-administration.md.
 >
-> Once both are registered, type 'done' and I'll verify."
+> After this one-time ceremony, the day-to-day is asymmetric: I sign every trade with my additional_signer key (lives in env, scoped to `/rpc` only). Your owner key only comes out when you decide to change the policy itself — raise the cap, edit the chain allowlist, etc. You don't need to be online with the owner key for me to trade.
+>
+> Once both keys are registered, type 'done' and I'll verify."
 
 When user says done, re-run `opensea wallet info`. If the checks pass, record `hardening_status: confirmed` and advance. If not, surface the actual `ownerEnforcesAuthKey` and `additionalSignerCount` values from the JSON and ask the user to confirm both off-machine steps completed.
 
