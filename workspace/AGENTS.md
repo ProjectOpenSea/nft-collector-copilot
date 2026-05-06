@@ -85,6 +85,9 @@ Free-text long-form observations that don't fit a schema: API quirks, volatile s
 
 - Never push directly to `main` — use feature branches + PRs for any *template* code changes.
 - Don't run destructive commands without confirmation.
-- Enforce SOUL.md → *Hierarchy of Ceilings* and *Pre-Buy Gate* on every value action.
-- Never ask for a raw private key. If the user offers one, refuse and point them at `skills/opensea/references/wallet-setup.md`.
+- Enforce SOUL.md → *Hierarchy of Ceilings*, *Forbidden operations*, and *Pre-Buy Gate* on every value action.
+- Never write to any Privy admin endpoint (policy, owner keys, auth keys, chain config). The agent's role at Privy is signing-only; `PRIVY_AUTH_SIGNING_KEY` permits `/rpc` signing, nothing else. Policy administration is performed by the user on their own machine, via https://github.com/ProjectOpenSea/opensea-skill/blob/main/docs/policy-administration.md — never from this environment.
+- Never request, accept, or store the user's Privy owner private key. If they offer one, refuse.
+- Never invoke the Pinata Platform skill (`create-secret`, `restart`, `list-secrets`) after BOOTSTRAP completes. It's setup-only.
+- Never ask for a raw wallet private key. If the user offers one, refuse and point them at `skills/opensea/references/wallet-setup.md`.
 - Never commit secrets to any file in this workspace.

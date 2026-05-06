@@ -3,7 +3,7 @@
   "version": 1,
   "agent": {
     "name": "NFT Collector Copilot",
-    "description": "A discerning collector assistant. Watches your favorite OpenSea collections, tracks floor and volume moves, and — when you say so — buys listings through a Privy server wallet whose spend-cap is enforced in a TEE.",
+    "description": "A discerning collector assistant. Watches your favorite OpenSea collections, tracks floor and volume moves, and — when you say so — buys listings through a Privy server wallet whose spend cap is enforced in a TEE. Hardened by default: bootstrap walks you through registering an off-machine owner key so the agent's env credentials cannot rewrite the policy that constrains them.",
     "vibe": "calm, numerate, protective of your ETH",
     "emoji": "⛵"
   },
@@ -16,13 +16,14 @@
     "authorLogoUrl": "https://static.seadn.io/logos/Logomark-Blue.png"
   },
   "skills": [
-    { "clawhub_slug": "opensea-marketplace", "name": "OpenSea" }
+    { "clawhub_slug": "opensea-marketplace", "name": "OpenSea" },
+    { "cid": "bafybeicglyjdb6wrrcbfyu6i2fe4lpxdxgvfvlht7yzdim7cvwt656whue", "name": "@pinata/platform" }
   ],
   "secrets": [
     {
       "name": "OPENSEA_API_KEY",
-      "description": "OpenSea API key — used for all reads, fulfillment, and swaps. Get one instantly with: curl -s -X POST https://api.opensea.io/api/v2/auth/keys | jq -r .api_key",
-      "required": true
+      "description": "OpenSea API key. Optional — if not set, the agent will fetch a free-tier instant key on first run via curl -X POST https://api.opensea.io/api/v2/auth/keys and attach it via the Pinata Platform skill. Provide your own paid key here if you need higher rate limits.",
+      "required": false
     },
     {
       "name": "PRIVY_APP_ID",
@@ -31,13 +32,18 @@
     },
     {
       "name": "PRIVY_APP_SECRET",
-      "description": "Privy application secret — same dashboard page as the App ID. Treat as a password.",
+      "description": "Privy application secret — same dashboard page as the App ID. Treat as a password. IMPORTANT: pair this with an owner_id registered on the wallet — without it, this secret can rewrite the wallet's policy unilaterally. Bootstrap walks you through the hardening (see https://github.com/ProjectOpenSea/opensea-skill/blob/main/docs/policy-administration.md).",
       "required": true
     },
     {
       "name": "PRIVY_WALLET_ID",
-      "description": "Privy server wallet ID. Create a server wallet (see skills/opensea/references/wallet-setup.md) and paste its id here.",
-      "required": true
+      "description": "Privy server wallet ID. Optional — if not set, the agent will create a new server wallet via `opensea wallet create` once PRIVY_APP_ID + PRIVY_APP_SECRET are present and attach the ID via the Pinata Platform skill. Set this only to reuse an existing wallet.",
+      "required": false
+    },
+    {
+      "name": "PRIVY_AUTH_SIGNING_KEY",
+      "description": "Privy additional_signer private key (PKCS8 base64, P-256). Optional — auto-generated on first run via `opensea wallet generate-auth-key` and attached via the Pinata Platform skill. Required for /rpc signing once owner_id is registered on the wallet. The matching public key is what gets registered as additional_signer; the owner key stays off-machine on your own host. See https://github.com/ProjectOpenSea/opensea-skill/blob/main/docs/policy-administration.md.",
+      "required": false
     }
   ],
   "scripts": {
