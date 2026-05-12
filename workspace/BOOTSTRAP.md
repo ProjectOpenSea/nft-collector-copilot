@@ -57,7 +57,7 @@ Hold the value in the shell var. Don't `--attach` yet — that happens at the en
 
 Otherwise, ask the user once:
 
-> "I need a Privy application before I can create your wallet. Create one at https://dashboard.privy.io (free tier is fine), then paste your **App ID** and **App Secret** here. I'll create the wallet, generate my own signer, and attach all the secrets in a single batch — only one restart at the end of this phase."
+> "I need a Privy application before I can create your wallet. Create one at https://dashboard.privy.io (free tier is fine), then paste your **App ID** and **App Secret** here. I'll create the wallet, generate my own signer, and save everything in a single batch. Heads up: when I save the secrets, Pinata reloads me once so they attach — that takes ~30 seconds and I'll be right back. It's the only reload you'll see during setup."
 
 When the user pastes them, capture into shell vars (`PRIVY_APP_ID=...`, `PRIVY_APP_SECRET=...`). Do not echo `PRIVY_APP_SECRET` back to chat or to logs.
 
@@ -88,7 +88,7 @@ PRIVY_WALLET_ID=$(printf '%s' "$WALLET_JSON" | jq -r .id)
 WALLET_ADDRESS=$(printf '%s' "$WALLET_JSON" | jq -r .address)
 ```
 
-The CLI will print a loud `WARNING: created without --owner-public-key` to stderr — that's expected; we register the owner and attach the spend policy together in the off-machine ceremony in Phase 1. The brief unhardened window between wallet creation and that ceremony is acceptable because the wallet has zero balance and no policy attached during this window — there is nothing to lose if the credentials in env were misused. Phase 1 refuses to advance until owner gating AND policy are both confirmed.
+The CLI will print a loud `WARNING: created without --owner-public-key` to stderr — that's expected; we register the owner and attach the spend policy together in the one-time setup step (Phase 1) the user runs on their own computer. The brief unhardened window between wallet creation and that step is acceptable because the wallet has zero balance and no policy attached during this window — there is nothing to lose if the credentials in env were misused. Phase 1 refuses to advance until owner gating AND policy are both confirmed.
 
 If `opensea wallet create` fails with an auth error, the Privy credentials the user pasted are wrong. Tell the user, ask them to recheck the dashboard, and re-collect 0b. **Don't proceed to 0d** with bad creds — you'd attach them, restart, and discover the failure cold next session.
 
@@ -113,7 +113,7 @@ node "$PINATA_CLI" create-secret PRIVY_AUTH_SIGNING_KEY "$PRIVY_AUTH_SIGNING_KEY
 
 Tell the user what just happened, then restart:
 
-> "All set: OpenSea key fetched, Privy app credentials saved, wallet `<WALLET_ADDRESS>` created, and my additional_signer keypair generated (private half stored as `PRIVY_AUTH_SIGNING_KEY`). Restarting now — I'll come back as a fresh session and walk you through the one-time off-machine ceremony to register your owner key and attach a spend policy."
+> "Saving everything now: OpenSea key fetched, Privy credentials stored, wallet `<WALLET_ADDRESS>` created, and a signing key generated for me. Pinata needs to reload me so the new secrets attach — give it about 30 seconds and I'll come back from the same place. Nothing's broken; this is the only reload you'll see during setup. Next up: one short step you'll do on your own computer to lock in the spend cap."
 
 ```bash
 node "$PINATA_CLI" restart
@@ -121,13 +121,13 @@ node "$PINATA_CLI" restart
 
 Stop. The conversation ends here; you'll resume cold from Phase 1.
 
-## Phase 1 — One-time off-machine ceremony (owner + signer + policy)
+## Phase 1 — One-time setup on your computer (owner key + signer + policy)
 
 **Skip if:** `IDENTITY.md` says `hardening_status: confirmed` AND `opensea wallet info` shows `policyIds.length > 0`.
 
 **Precondition:** `PRIVY_WALLET_ID` + `PRIVY_AUTH_SIGNING_KEY` set.
 
-This phase bundles the three off-machine actions that all require the user's owner private key into one focused session, so the user only has to bring out their owner key once.
+This phase bundles the three actions that all require the user's owner private key into one focused session, so the user only has to bring out their owner key once. Frame this as a *setup step on their computer*, not a "ceremony" — the word loses non-technical collectors. It's three short commands on their laptop, signed with a key they generate and keep.
 
 Check current posture:
 
@@ -141,7 +141,7 @@ The three properties to verify:
 - `additionalSignerCount >= 1` — agent's signer registered
 - `policyIds.length > 0` — spend policy attached
 
-If all three pass, the ceremony is complete. Update `IDENTITY.md`:
+If all three pass, the setup step is complete. Update `IDENTITY.md`:
 
 - `hardening_status: confirmed`
 - `auth_key_gating: yes`
@@ -150,26 +150,28 @@ If all three pass, the ceremony is complete. Update `IDENTITY.md`:
 
 Then advance to Phase 2.
 
-Otherwise (most likely on first arrival here), walk the user through the combined ceremony. First, settle the per-tx cap conversationally so they can plug it into the policy template before going off-machine:
+Otherwise (most likely on first arrival here), walk the user through the combined setup step. Lead with warmth — this is the most "crypto-feeling" moment in the whole flow, and the place most non-technical collectors drop off. Briefly say *why* it exists: the agent runs with env credentials that can sign trades but cannot change the spend rules. Only a signature from a key on the user's own computer can. That asymmetry is what makes the cap real; without it, the cap would be advisory.
+
+First, settle the per-tx cap conversationally so they can plug it into the policy template before they go to their computer:
 
 1. Ask them their per-tx cap in ETH (no example — they choose). Convert to wei: `0.05 ETH = 50000000000000000 wei`.
 2. Show them the *Agent Trading — Conservative* template from `skills/opensea/references/wallet-policies.md`, with their cap substituted into the `value lte` rule. Use the chain allowlist and Seaport destination from the same reference, verbatim.
 
 Then tell them:
 
-> "Wallet is at `<address>` (id `<wallet_id>`). Before I can sign anything, three things need to happen on YOUR machine — never here. Get them all out of the way in one session with your owner key:
+> "Your wallet's at `<address>` (id `<wallet_id>`). Before I can sign anything, there's one short setup step you'll run on your own computer — never here. Why on *your* computer? Because the whole point of the spend cap is that even if my credentials were stolen, no one could lift it. The cap can only be changed by a signature from a key you generate and keep. So we make that key now, register it on the wallet, and lock in the cap — all in one go. Three commands, ~5 minutes:
 >
-> 1. **Generate your owner keypair locally.** Easiest path: install the OpenSea CLI locally (`npm install -g @opensea/cli`) and run `opensea wallet generate-auth-key`. Or use any P-256 keygen (e.g. `openssl ecparam -name prime256v1 -genkey -noout -out owner.pem` and convert to SPKI base64). Keep the private key on your machine — never paste it to me, never put it in env, never check it into anything.
+> 1. **Make your owner key.** Easiest path: install the OpenSea CLI on your laptop (`npm install -g @opensea/cli`) and run `opensea wallet generate-auth-key`. That gives you a public/private pair. Keep the private one on your computer — never paste it to me, never put it in env, never commit it. Treat it like the seed phrase to your real wallet, even though it isn't one.
 >
-> 2. **Register two keys on the wallet:** your owner public key as `owner_id`, AND my additional_signer public key (`<additional_signer_pubkey from IDENTITY.md>`) as a signer.
+> 2. **Tell the wallet about two keys:** your new owner public key (sets `owner_id`), and my signer public key (`<additional_signer_pubkey from IDENTITY.md>`).
 >
-> 3. **Attach the spend policy** I just showed you (with your `<cap>` ETH cap), so the per-tx ceiling is enforced in Privy's TEE.
+> 3. **Attach the spend policy** I just showed you (with your `<cap>` ETH cap), so the per-tx ceiling lives inside Privy's secure enclave.
 >
-> Steps 2 and 3 are both done with the Node script in https://github.com/ProjectOpenSea/opensea-skill/blob/main/docs/policy-administration.md, signed by your owner key (off-machine). Do them in order: register first, attach policy second — once owner gating is on, the policy attach also requires the owner signature.
+> Steps 2 and 3 are a single Node script — copy/paste from https://github.com/ProjectOpenSea/opensea-skill/blob/main/docs/policy-administration.md. Run register first, attach policy second; once your owner key is registered, the policy attach also has to be signed by it.
 >
-> After this one-time ceremony, the day-to-day is asymmetric: I sign every trade with my additional_signer key (lives in env, scoped to `/rpc` only). Your owner key only comes out when you decide to change the policy itself — raise the cap, edit the chain allowlist, etc. You don't need to be online with the owner key for me to trade.
+> After today, your owner key stays in a drawer. I sign every trade with my own key (the one in env, which can only sign `/rpc` — it can't touch the policy). You only pull the owner key back out when *you* decide to change the rules — raise the cap, add a chain, etc. — and I'll walk you through that when the time comes.
 >
-> Once all three are done, type 'done' and I'll verify."
+> Type 'done' when all three are finished and I'll double-check the wallet state."
 
 When the user says done, re-run `opensea wallet info`. Verify each property and surface specifically which (if any) failed:
 
@@ -179,7 +181,7 @@ When the user says done, re-run `opensea wallet info`. Verify each property and 
 
 Don't advance with partial state. Once all three pass, record the IDENTITY.md fields above and advance to Phase 2.
 
-**Refuse to advance to Phase 2 (funding) until all three pass.** Without owner gating, the credentials in env can rewrite the policy that's supposed to constrain spending. Without a policy, there is no per-tx ceiling. Funding before either is in place creates a window where env credentials could drain the wallet. If the user pushes back, explain the order and offer to keep waiting.
+**Refuse to advance to Phase 2 (funding) until all three pass.** Without owner gating, the credentials in env can rewrite the policy that's supposed to constrain spending. Without a policy, there is no per-tx ceiling. Funding before either is in place creates a window where env credentials could drain the wallet. If the user pushes back ("can we just do funding first?"), don't get rigid — empathize, then explain plainly: "The cap isn't on yet, so right now there's nothing stopping a runaway spend except the empty wallet. Once you finish the setup step, the cap is live and we can fund safely. I'm happy to wait — pick this up whenever you're at your laptop."
 
 ## Phase 2 — Hot-wallet funding
 

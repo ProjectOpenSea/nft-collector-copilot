@@ -47,11 +47,11 @@ On first conversation the agent will walk you through:
 - Fetching an OpenSea API key and attaching it (free-tier instant key, no signup).
 - Creating your Privy server wallet (`opensea wallet create`) and storing the ID.
 - Generating its own additional_signer keypair and storing the private half as `PRIVY_AUTH_SIGNING_KEY`.
-- An off-machine ceremony you do on your own host: generate an owner keypair, then register both your owner public key (as `owner_id`) and the agent's additional_signer public key on the wallet via https://github.com/ProjectOpenSea/opensea-skill/blob/main/docs/policy-administration.md. Your owner private key never touches the agent.
+- A one-time setup step on your own computer (~5 minutes): generate an owner key, then register both your owner public key (as `owner_id`) and the agent's signer public key on the wallet via https://github.com/ProjectOpenSea/opensea-skill/blob/main/docs/policy-administration.md. Your owner private key never touches the agent — it stays on your laptop so a leaked agent credential can't lift the spend cap.
 - Choosing and attaching a per-tx policy (Agent Trading — Conservative is the default template).
 - Funding the agent wallet to a hot-wallet float you set per chain.
 
-Each step that needs new secrets ends with a Pinata restart, after which the agent resumes from where you left off. BOOTSTRAP is a resumable state machine — cold restarts pick up at the first incomplete phase.
+Setup involves exactly **one Pinata reload** (after secrets get written) and **one short step on your computer** (the owner-key + policy setup). If Pinata reloads the agent mid-conversation, that's expected — it's how the new secrets get picked up. The agent resumes from the same place after the reload; BOOTSTRAP is a resumable state machine, so cold restarts pick up at the first incomplete phase.
 
 ## Example prompts
 
@@ -74,7 +74,7 @@ Each step that needs new secrets ends with a Pinata restart, after which the age
 Three independent layers, in order of how the bound is actually enforced:
 
 1. **Wallet float** — the **real aggregate ceiling**. The agent doesn't hold a key to a treasury; it can only spend what's in the agent wallet. You fund it from your own cold/funding wallet to ≈ a day or week of intended budget and replenish on your cadence. Privy can't enforce daily/weekly cumulative limits, so wallet balance is what stops a runaway spend.
-2. **Privy per-tx policy (TEE-enforced)** — caps each individual transaction. Conditional on `owner_id` being registered: the agent's env credentials cannot rewrite the policy because mutations require an authorization signature from the owner key (which lives on your host, not the agent's). Bootstrap verifies this is in place before any signing-capable step.
+2. **Privy per-tx policy (TEE-enforced)** — caps each individual transaction. Conditional on `owner_id` being registered: the agent's env credentials cannot rewrite the policy because changing the policy requires a signature from the owner key — and that key lives on your computer, not the agent's. Bootstrap verifies this is in place before any signing-capable step.
 3. **Per-turn confirmation** for material actions. Any buy, offer acceptance, approval, or transfer above `confirmAboveEth` (in `workspace/TOOLS.md`) needs explicit "yes" in the current turn. Snipes can bypass this only when the listing is fully inside your configured envelope — see `workspace/SOUL.md` → *Hierarchy of Ceilings*.
 
 Other invariants:
